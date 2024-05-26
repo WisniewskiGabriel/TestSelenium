@@ -1,14 +1,14 @@
-from Tools.scripts.var_access_benchmark import B
-from prefect import task, flow, get_run_logger
-from prefect.blocks.system import String
 import re
+import time
+
+from prefect import task, flow, get_run_logger
+from prefect.blocks.system import Secret
+from prefect.blocks.system import String
 from selenium import webdriver
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.common.keys import Keys
-from prefect.blocks.system import Secret
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 @task(name="Get URL for ACME System 1", log_prints=True)
@@ -50,7 +50,6 @@ def get_acme_credentials():
 
 @flow(name="Start login on ACME")
 def login_acme():
-    # get_acme_credentials()
     driver = start_browser()
     is_header_loaded = False
     header_text = "To continue, please authenticate here"
@@ -79,4 +78,13 @@ def login_acme():
 
     driver.get(get_acme_url())
 
+    return driver
+
+
+@task(name="Get Work-Items page")
+def access_work_items_page(driver, id_work_item):
+    url_of_work_item = str(get_acme_url()) + "work-items/" + id_work_item
+    print("Going to URL: " + url_of_work_item)
+    driver.get(url_of_work_item)
+    time.sleep(0.5)
     return driver
