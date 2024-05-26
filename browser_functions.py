@@ -1,11 +1,13 @@
-from prefect import task, flow
+from Tools.scripts.var_access_benchmark import B
+from prefect import task, get_run_logger
 from prefect.blocks.system import String
 import re
 from selenium import webdriver
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.common.keys import Keys
 
 
 @task(name="Get URL for ACME System 1", log_prints=True)
@@ -28,12 +30,21 @@ def start_browser():
 @task(name="Start login on ACME")
 def login_acme():
     driver = start_browser()
+    is_header_loaded = False
+    header_text = "To continue, please authenticate here"
+
     try:
-        element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.LINK_TEXT, "To continue, please authenticate here"))
+        WebDriverWait(driver, 10).until(
+            ec.presence_of_element_located((By.XPATH, '//h3[contains(text(), "' + header_text + '")]'))
         )
+        is_header_loaded = True
         return True
     except TimeoutException:
-        print("Timed out waiting for element to load")
+        is_header_loaded = False
+    finally:
+        if is_header_loaded:
+            print("Login page is loaded")
+        else:
+            get_run_logger().error("Page not loaded yet.")
 
-    return driver
+
