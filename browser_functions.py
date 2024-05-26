@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-@task(name="Get URL for ACME System 1", log_prints=True)
+@task(name="Get URL for ACME System 1", log_prints=True)  # Pegar bloco que contem URL base do ACME
 def get_acme_url():
     url_acme_system1 = String.load("acme-system-url")
     pattern = r"(?<=value\=').+?(?='\)$)"
@@ -20,7 +20,7 @@ def get_acme_url():
     return url_acme_system1
 
 
-@task(name="Start browser at ACME")
+@task(name="Start browser at ACME")  # Inicia o browser no URL do ACME
 def start_browser():
     url_acme_system1 = get_acme_url()
     driver = webdriver.Chrome()  # For Chrome
@@ -28,15 +28,20 @@ def start_browser():
     return driver
 
 
-@task(name="Get ACME credentials")
+@task(name="Get ACME credentials")  # Monta classe de credencial do ACME
 def get_acme_credentials():
-    email_pattern = r"(?<=id\:).+?(?=\|)"
-    next_block_pattern = r"(?<=secret_block:).+?(?='\)$)"
-    block_str = String.load("credential-for-acme-system1")
-    user = re.search(email_pattern, str(block_str)).group()
-    name_of_next_block = re.search(next_block_pattern, str(block_str)).group()
+    #  Padrões de RegEx para capturar valores dos Blocks
+    email_pattern = r"(?<=id\:).+?(?=\|)"  # Padrão para pegar e-mail
+    next_block_pattern = r"(?<=secret_block:).+?(?='\)$)"  # Padrão para pegar nome do próx. bloco (Secret)
 
-    password = Secret.load(name_of_next_block).get()
+    # Leitura do primeiro block
+    block_str = String.load("credential-for-acme-system1")
+
+    # Captura dos valores dos blocks
+    user = re.search(email_pattern, str(block_str)).group()  # Leitura por RegEx do ID do user
+    name_of_next_block = re.search(next_block_pattern,
+                                   str(block_str)).group()  # Leitura por RegEx do nome do próx. block que contém o Secret
+    password = Secret.load(name_of_next_block).get()  # Captura da senha via Secret Block
 
     class UserCredentials:
         def __init__(self):
