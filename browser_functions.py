@@ -20,7 +20,7 @@ def get_acme_url():
     return url_acme_system1
 
 
-@task(name="Start browser at ACME")  # Inicia o browser no URL do ACME
+@task(name="Start browser at ACME", log_prints=True)  # Inicia o browser no URL do ACME
 def start_browser():
     url_acme_system1 = get_acme_url()
     driver = webdriver.Chrome()  # For Chrome
@@ -28,7 +28,7 @@ def start_browser():
     return driver
 
 
-@task(name="Get ACME credentials")  # Monta classe de credencial do ACME
+@task(name="Get ACME credentials", log_prints=True)  # Monta classe de credencial do ACME
 def get_acme_credentials():
     #  Padrões de RegEx para capturar valores dos Blocks
     email_pattern = r"(?<=id\:).+?(?=\|)"  # Padrão para pegar e-mail
@@ -53,7 +53,7 @@ def get_acme_credentials():
     return credentials
 
 
-@flow(name="Start login on ACME")
+@flow(name="Start login on ACME", log_prints=True)
 def login_acme():
     driver = start_browser()
     is_header_loaded = False
@@ -86,7 +86,7 @@ def login_acme():
     return driver
 
 
-@task(name="Get Work-Items page")
+@task(name="Get Work-Items page", log_prints=True)
 def access_work_items_page(driver, id_work_item):
     url_of_work_item = str(get_acme_url()) + "work-items/" + id_work_item
     print("Going to URL: " + url_of_work_item)
