@@ -33,9 +33,7 @@ def get_acme_credentials():
     email_pattern = r"(?<=id\:).+?(?=\|)"
     next_block_pattern = r"(?<=secret_block:).+?(?='\)$)"
     block_str = String.load("credential-for-acme-system1")
-    user = re.search(email_pattern, str(block_str)).group
-    print(block_str)
-
+    user = re.search(email_pattern, str(block_str)).group()
     name_of_next_block = re.search(next_block_pattern, str(block_str)).group()
 
     password = Secret.load(name_of_next_block).get()
@@ -52,7 +50,7 @@ def get_acme_credentials():
 
 @flow(name="Start login on ACME")
 def login_acme():
-    get_acme_credentials()
+    # get_acme_credentials()
     driver = start_browser()
     is_header_loaded = False
     header_text = "To continue, please authenticate here"
@@ -73,8 +71,12 @@ def login_acme():
     credentials = get_acme_credentials()
     email_input = driver.find_element(By.ID, "email")
     password_input = driver.find_element(By.ID, "password")
+    login_button = driver.find_element(By.XPATH, "/html/body/div/div[2]/div/div/div/form/button")
 
     email_input.send_keys(str(credentials.user))
     password_input.send_keys(str(credentials.password))
+    login_button.click()
+
+    driver.get(get_acme_url())
 
     return driver

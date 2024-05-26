@@ -12,7 +12,7 @@ def main_fn():
     driver = login_acme()
 
     time.sleep(3)
-    driver.quit()
+    # driver.quit()
 
 
 if __name__ == "__main__":
