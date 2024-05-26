@@ -1,4 +1,5 @@
 from prefect import task, flow
+import selenium
 from selenium import webdriver
 from prefect.blocks.system import String
 import re
