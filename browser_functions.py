@@ -1,5 +1,5 @@
 from Tools.scripts.var_access_benchmark import B
-from prefect import task, get_run_logger
+from prefect import task, flow, get_run_logger
 from prefect.blocks.system import String
 import re
 from selenium import webdriver
@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.keys import Keys
+from prefect.blocks.system import Secret
 
 
 @task(name="Get URL for ACME System 1", log_prints=True)
@@ -27,8 +28,31 @@ def start_browser():
     return driver
 
 
-@task(name="Start login on ACME")
+@task(name="Get ACME credentials")
+def get_acme_credentials():
+    email_pattern = r"(?<=id\:).+?(?=\|)"
+    next_block_pattern = r"(?<=secret_block:).+?(?='\)$)"
+    block_str = String.load("credential-for-acme-system1")
+    user = re.search(email_pattern, str(block_str)).group
+    print(block_str)
+
+    name_of_next_block = re.search(next_block_pattern, str(block_str)).group()
+
+    password = Secret.load(name_of_next_block).get()
+
+    class UserCredentials:
+        def __init__(self):
+            self.user = user
+            self.password = password
+
+    credentials = UserCredentials()
+
+    return credentials
+
+
+@flow(name="Start login on ACME")
 def login_acme():
+    get_acme_credentials()
     driver = start_browser()
     is_header_loaded = False
     header_text = "To continue, please authenticate here"
@@ -46,4 +70,11 @@ def login_acme():
         else:
             get_run_logger().error("Page not loaded yet.")
 
+    credentials = get_acme_credentials()
+    email_input = driver.find_element(By.ID, "email")
+    password_input = driver.find_element(By.ID, "password")
 
+    email_input.send_keys(str(credentials.user))
+    password_input.send_keys(str(credentials.password))
+
+    return driver

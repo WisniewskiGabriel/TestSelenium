@@ -10,9 +10,9 @@ from selenium.webdriver.common.by import By
 @flow(name="Selenium with Prefect", log_prints=True)
 def main_fn():
     driver = login_acme()
-    email_input = driver.find_element(By.ID("email"))
-    email_input.send_keys("teste")
-    # driver.quit()
+
+    time.sleep(3)
+    driver.quit()
 
 
 if __name__ == "__main__":
