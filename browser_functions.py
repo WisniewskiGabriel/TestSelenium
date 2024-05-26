@@ -38,7 +38,6 @@ def login_acme():
             ec.presence_of_element_located((By.XPATH, '//h3[contains(text(), "' + header_text + '")]'))
         )
         is_header_loaded = True
-        return True
     except TimeoutException:
         is_header_loaded = False
     finally:
