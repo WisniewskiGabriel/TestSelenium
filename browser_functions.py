@@ -106,7 +106,6 @@ def change_work_item_status(driver, msg):
     select_dropdown_element.click()
     status_option_element.click()
     submit_button_element.click()
-    time.sleep(4)
     confirm_status_change(driver)
     return driver
 
