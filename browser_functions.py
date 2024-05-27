@@ -9,9 +9,9 @@ from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoAlertPresentException
 
 
-@task(name="Get URL for ACME System 1", log_prints=True)  # Pegar bloco que contem URL base do ACME
 def get_acme_url():
     url_acme_system1 = String.load("acme-system-url")
     pattern = r"(?<=value\=').+?(?='\)$)"
@@ -88,8 +88,38 @@ def login_acme():
 
 @task(name="Get Work-Items page", log_prints=True)
 def access_work_items_page(driver, id_work_item):
-    url_of_work_item = str(get_acme_url()) + "work-items/" + id_work_item
-    print("Going to URL: " + url_of_work_item)
+    url_of_work_item = str(get_acme_url()) + "work-items/update/" + id_work_item
+    print("Going to Work-Item: " + id_work_item)
     driver.get(url_of_work_item)
     time.sleep(0.5)
     return driver
+
+
+@task(name="Change status of Work-Item", log_prints=True)
+def change_work_item_status(driver, msg):
+    comment_element = driver.find_element(By.ID, "newComment")
+    select_dropdown_element = driver.find_element(By.XPATH, "//span[@class='filter-option pull-left' and text()='---']")
+    status_option_element = driver.find_element(By.XPATH, "//span[contains(@class, 'text') and text()='Completed']")
+    submit_button_element = driver.find_element(By.XPATH, "//button[@id='buttonUpdate']")
+
+    comment_element.send_keys(msg)
+    select_dropdown_element.click()
+    status_option_element.click()
+    submit_button_element.click()
+    time.sleep(4)
+    confirm_status_change(driver)
+    return driver
+
+
+@task(name="Confirm status change")
+def confirm_status_change(driver):
+    try:
+        WebDriverWait(driver, 10).until(ec.alert_is_present())
+        alert = driver.switch_to.alert
+        print("Alert is present")
+        print("Alert text:", alert.text)
+        alert.accept()
+        time.sleep(1)
+    except TimeoutException:
+        print("No alert is present")
+    return
