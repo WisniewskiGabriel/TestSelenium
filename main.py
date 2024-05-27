@@ -11,9 +11,7 @@ def main_fn():
     time.sleep(3)
     work_list = get_work_list()
     for work_id in work_list:
-        driver = access_work_items_page(driver, work_id)  # Função que acessa o work-item de ID específico
-        time.sleep(1.5)
-        driver = change_work_item_status(driver, "Done by a bot.")
+        driver = complete_work_item(driver, work_id, "Done by a bot.")
     driver.quit()  # Encerra instância do browser
 
 
@@ -23,6 +21,13 @@ def get_work_list():
     id_pattern = r"\d{8}"
     work_list = re.findall(id_pattern, str(str_list))
     return work_list
+
+
+@flow(name="Complete Work-Item", log_prints=True)
+def complete_work_item(driver, work_id, msg):
+    driver = access_work_items_page(driver, work_id)  # Função que acessa o work-item de ID específico
+    driver = change_work_item_status(driver, msg)
+    return driver
 
 
 if __name__ == "__main__":
